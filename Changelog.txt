@@ -5,3 +5,12 @@ The problem of uppercases characters in the installation script has been solved 
 ---------------------------------------------19 / 04 / 2016----------------------------------------------------
 
 Removed Inguma from the menu to bypass issue with installation (By Jayson Grace : https://github.com/l50)
+
+
+---------------------------------------------v3.0----------------------------------------------------
+
+Python 3 remake by IamPhasm.
+- Ported katoolin.py and core/ to Python 3
+- Replaced apt-key with a signed-by keyring (/usr/share/keyrings/kali-archive-keyring.gpg)
+- Kali repo now lives in /etc/apt/sources.list.d/katoolin.list
+- Repo removal also cleans up entries from older versions

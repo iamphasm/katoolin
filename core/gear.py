@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 from core.categories import *
 import sys, os
 
@@ -40,15 +40,15 @@ def show_categories():
 	"""
 	Displays the categories available in the 'categories' dictionary of the core/categories.py file
 	"""
-	print "\n%s:: Categories:%s\n" %(green, reset)
+	print("\n%s:: Categories:%s\n" %(green, reset))
 	for name in categories.items():
 		category = name[1][0]
 		category = format(category)
 		if name[0]%2 != 0:
-			print " "+str(name[0]).rjust(2) + ")", category.ljust(23)[:23],
+			print(" "+str(name[0]).rjust(2) + ")", category.ljust(23)[:23], end=" ")
 		else:
-			print " "+str(name[0]).rjust(2) + ")", category
-	print " "
+			print(" "+str(name[0]).rjust(2) + ")", category)
+	print(" ")
 
 def load_category(key):
 	"""
@@ -58,17 +58,17 @@ def load_category(key):
 		os.system('clear')
 		category = categories[int(key)][0]
 		category = format(category)
-		print green + ":: " + category + reset + "\n"
+		print(green + ":: " + category + reset + "\n")
 		show_tools(categories[int(key)][1])
 		tools = categories[int(key)][1]
 		site = categories[int(key)][0]
 		action = False
 		while action == False:
 			try:
-				option = raw_input(": katoolin (%s%s%s) > " %(yellow, site, reset))
+				option = input(": katoolin (%s%s%s) > " %(yellow, site, reset))
 			except KeyboardInterrupt:
 				delete_repository()
-				print "..."; break
+				print("..."); break
 			try:
 				if option == 'back':
 					delete_repository()
@@ -91,20 +91,20 @@ def load_category(key):
 			except:
 				pass
 	else:
-		print red + "E: The command is invalid!" + reset
+		print(red + "E: The command is invalid!" + reset)
 
 def search_tool(tool):
 	"""
 	Shows in which category the tool you are looking for is available
 	"""
-	print ": Find " + yellow + tool + reset
-	print ": Available in:"
+	print(": Find " + yellow + tool + reset)
+	print(": Available in:")
 	for lists in categories.items():
 		tools = lists[1][1]
 		category = lists[1][0]
 		category = format(category)
 		if tool in tools:
-			print " [%s+%s] %s" %(green, reset, category)
+			print(" [%s+%s] %s" %(green, reset, category))
 
 def show_tools(tools):
 	"""
@@ -112,10 +112,10 @@ def show_tools(tools):
 	"""
 	for tool in enumerate(tools):
 		if tool[0]%2 == 0:
-			print " "+str(tool[0]+1).rjust(2) + ")", tool[1].ljust(23)[:23],
+			print(" "+str(tool[0]+1).rjust(2) + ")", tool[1].ljust(23)[:23], end=" ")
 		else:
-			print " "+str(tool[0]+1).rjust(2) + ")", tool[1]
-	print "\n 99) ALL"
+			print(" "+str(tool[0]+1).rjust(2) + ")", tool[1])
+	print("\n 99) ALL")
 
 def add_repository():
 	"""
@@ -125,13 +125,13 @@ def add_repository():
 		add_key()
 	else:
 		try:
-			f = open("/etc/apt/sources.list.d/katoolin.list", "wb")
-			f.write("#Katoolin\ndeb http://http.kali.org/kali kali-rolling main contrib non-free\n# For source package access, uncomment the following line\n# deb-src http://http.kali.org/kali kali-rolling main contrib non-free\n")
+			f = open("/etc/apt/sources.list.d/katoolin.list", "w")
+			f.write("#Katoolin\ndeb [signed-by=/usr/share/keyrings/kali-archive-keyring.gpg] http://http.kali.org/kali kali-rolling main contrib non-free non-free-firmware\n# For source package access, uncomment the following line\n# deb-src [signed-by=/usr/share/keyrings/kali-archive-keyring.gpg] http://http.kali.org/kali kali-rolling main contrib non-free non-free-firmware\n")
 			f.close()
-			print green + "\n[+] Add repository\n" + reset
+			print(green + "\n[+] Add repository\n" + reset)
 			add_key()
 		except IOError:
-			print red+"E: Please run as root"+reset
+			print(red+"E: Please run as root"+reset)
 			sys.exit()
 
 def delete_repository():
@@ -141,7 +141,7 @@ def delete_repository():
 	repository = "/etc/apt/sources.list.d/katoolin.list"
 	if os.path.exists(repository):
 		os.remove(repository)
-		print green + "\n[+] Repository deleted\n" + reset
+		print(green + "\n[+] Repository deleted\n" + reset)
 
 def add_key():
 	"""
@@ -151,16 +151,16 @@ def add_key():
 	if os.path.exists(tmp_key):
 		pass
 	else:
-		os.system("apt-key adv --keyserver pgp.mit.edu --recv-keys ED444FF07D8D0BF6")
-		f = open(tmp_key, "wb")
+		os.system("wget -qO- https://archive.kali.org/archive-key.asc | gpg --dearmor > /usr/share/keyrings/kali-archive-keyring.gpg && chmod 644 /usr/share/keyrings/kali-archive-keyring.gpg")
+		f = open(tmp_key, "w")
 		f.write("katoolin\n")
 		f.close()
-		print green + "\n[+] Add keyserver\n" + reset
+		print(green + "\n[+] Add keyserver\n" + reset)
 		os.system('apt-get update -o Dir::Etc::sourcelist="sources.list.d/katoolin.list" -o Dir::Etc::sourceparts="-" -o apt::Get::List-Cleanup="0"')
-		print green + "\n[+] Update\n" + reset
+		print(green + "\n[+] Update\n" + reset)
 
 def banner():
-	version = "v1.3b"
+	version = "v3.0"
 	tools = num_tools()
 	options = """
  1) View Categories
@@ -169,7 +169,7 @@ def banner():
 
  4) Exit
 	"""
-	print """
+	print(r"""
  $$\   $$\             $$\                         $$\ $$\           
  $$ | $$  |            $$ |                        $$ |\__|          
  $$ |$$  /  $$$$$$\  $$$$$$\    $$$$$$\   $$$$$$\  $$ |$$\ $$$$$$$\  
@@ -180,45 +180,45 @@ def banner():
  \__|  \__| \_______|   \____/  \______/  \______/ \__|\__|\__|  \__| %s%s
 
  %s+ -- -- +=[ Original project: https://github.com/LionSec/katoolin | LionSec
- + -- -- +=[ %s Tools%s""" %(cyan,reset,cyan,version,reset,green,tools,reset)
- 	print options
+ + -- -- +=[ %s Tools%s""" %(cyan,reset,cyan,version,reset,green,tools,reset))
+	print(options)
 
 def update():
 	"""
 	Update 'katoolin' with: git pull
 	"""
- 	try:
+	try:
 		os.system('git pull')
-		print  yellow + "W: Please restart katoolin" + reset
+		print(yellow + "W: Please restart katoolin" + reset)
 	except:
-		print red + "E: can't start update please use <git pull>"+reset
+		print(red + "E: can't start update please use <git pull>"+reset)
 
 def help(x=False):
 	"""
 	Displays tool help
 	"""
 	if x != True:
-		print """: load=<category>   Load category
+		print(""": load=<category>   Load category
 : search=<tool>     Find tool
 : clear             Clean screen  
 : 1, show           Show categories
 : 2, update         Update katoolin (git pull)
 : 3, help           Show help
-: 4, exit           Exit katoolin"""
+: 4, exit           Exit katoolin""")
 	else:
-		print """: <option>  Install tool
+		print(""": <option>  Install tool
 : 99        Install all tools in the category
 : back      Return to previous menu
 : clear     Clean screen
 : show      Show tools
-: help      Show help"""
+: help      Show help""")
 
 def clean_screen():
 	os.system('clear')
 	banner()
 
 def exit():
-	print "\nClosing, bye! - katoolin"
+	print("\nClosing, bye! - katoolin")
 	sys.exit()
 
 def num_tools():

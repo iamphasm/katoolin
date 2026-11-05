@@ -1,28 +1,59 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 
 import os
 import sys, traceback
 
 
+KALI_LIST = "/etc/apt/sources.list.d/katoolin.list"
+KALI_KEYRING = "/usr/share/keyrings/kali-archive-keyring.gpg"
+KALI_KEY_URL = "https://archive.kali.org/archive-key.asc"
+
+def add_kali_repo():
+	# apt-key is removed in modern apt: use a dedicated keyring + signed-by instead
+	rc = os.system("wget -qO- %s | gpg --dearmor > %s" % (KALI_KEY_URL, KALI_KEYRING))
+	if rc != 0:
+		if os.path.exists(KALI_KEYRING):
+			os.remove(KALI_KEYRING)
+		print ("\033[1;31mFailed to download the Kali archive key (needs wget and gpg).\033[1;m")
+		return
+	os.chmod(KALI_KEYRING, 0o644)
+	with open(KALI_LIST, "w") as f:
+		f.write("# Kali linux repositories | Added by Katoolin\n"
+			"deb [signed-by=%s] http://http.kali.org/kali kali-rolling main contrib non-free non-free-firmware\n" % KALI_KEYRING)
+	print ("\033[1;32mKali repository added. Run option 2 to update.\033[1;m")
+
+def remove_kali_repo():
+	for path in (KALI_LIST, KALI_KEYRING):
+		if os.path.exists(path):
+			os.remove(path)
+	# clean up entries written by older versions of katoolin
+	old = "/etc/apt/sources.list"
+	if os.path.exists(old):
+		with open(old) as f:
+			lines = f.readlines()
+		drop = ("# Kali linux repositories | Added by Katoolin", "deb http://http.kali.org/kali kali-rolling main contrib non-free")
+		with open(old, "w") as f:
+			f.writelines(l for l in lines if l.strip() not in drop)
+
 if os.getuid() != 0:
-	print "Sorry. This script requires sudo privledges"
+	print("Sorry. This script requires sudo privledges")
 	sys.exit()
 def main():
 	try:
 		print ('''
 
- $$\   $$\             $$\                         $$\ $$\           
- $$ | $$  |            $$ |                        $$ |\__|          
- $$ |$$  /  $$$$$$\  $$$$$$\    $$$$$$\   $$$$$$\  $$ |$$\ $$$$$$$\  
- $$$$$  /   \____$$\ \_$$  _|  $$  __$$\ $$  __$$\ $$ |$$ |$$  __$$\ 
+ $$\\   $$\\             $$\\                         $$\\ $$\\           
+ $$ | $$  |            $$ |                        $$ |\\__|          
+ $$ |$$  /  $$$$$$\\  $$$$$$\\    $$$$$$\\   $$$$$$\\  $$ |$$\\ $$$$$$$\\  
+ $$$$$  /   \\____$$\\ \\_$$  _|  $$  __$$\\ $$  __$$\\ $$ |$$ |$$  __$$\\ 
  $$  $$<    $$$$$$$ |  \033[1;36mKali linux tools installer\033[1;m |$$ |$$ |$$ |  $$ |
- \033[1;36m$$ |\$$\  $$  __$$ |  $$ |$$\ $$ |  $$ |$$ |  $$ |$$ |$$ |$$ |  $$ |
- $$ | \$$\ \$$$$$$$ |  \$$$$  |\$$$$$$  |\$$$$$$  |$$ |$$ |$$ |  $$ |
- \__|  \__| \_______|   \____/  \______/  \______/ \__|\__|\__|  \__| V2.0 \033[1;m
+ \033[1;36m$$ |\\$$\\  $$  __$$ |  $$ |$$\\ $$ |  $$ |$$ |  $$ |$$ |$$ |$$ |  $$ |
+ $$ | \\$$\\ \\$$$$$$$ |  \\$$$$  |\\$$$$$$  |\\$$$$$$  |$$ |$$ |$$ |  $$ |
+ \\__|  \\__| \\_______|   \\____/  \\______/  \\______/ \\__|\\__|\\__|  \\__| V3.0 \033[1;m
 
 
- \033[1;32m+ -- -- +=[ Author: LionSec | Homepage: www.neodrix.com\033[1;m
- \033[1;32m+ -- -- +=[ 331 Tools \033[1;m
+ \033[1;32m+ -- -- +=[ Remake by IamPhasm | Original: LionSec\033[1;m
+ \033[1;32m+ -- -- +=[ 325 Tools \033[1;m
 
 
 \033[1;91m[W] Before updating your system , please remove all Kali-linux repositories to avoid any kind of problem .\033[1;m
@@ -38,7 +69,7 @@ def main():
 
 			''')
 
-				opcion0 = raw_input("\033[1;36mkat > \033[1;m")
+				opcion0 = input("\033[1;36mkat > \033[1;m")
 			
 				while opcion0 == "1":
 					print ('''
@@ -48,36 +79,24 @@ def main():
 4) View the contents of sources.list file
 
 					''')
-					repo = raw_input("\033[1;32mWhat do you want to do ?> \033[1;m")
+					repo = input("\033[1;32mWhat do you want to do ?> \033[1;m")
 					if repo == "1":
-						cmd1 = os.system("apt-key adv --keyserver keyserver.ubuntu.com --recv-keys ED444FF07D8D0BF6")
-						cmd2 = os.system("echo '# Kali linux repositories | Added by Katoolin\ndeb http://http.kali.org/kali kali-rolling main contrib non-free' >> /etc/apt/sources.list")
+						add_kali_repo()
 					elif repo == "2":
 						cmd3 = os.system("apt-get update -m")
 					elif repo == "3":
-						infile = "/etc/apt/sources.list"
-						outfile = "/etc/apt/sources.list"
-
-						delete_list = ["# Kali linux repositories | Added by Katoolin\n", "deb http://http.kali.org/kali kali-rolling main contrib non-free\n"]
-						fin = open(infile)
-						os.remove("/etc/apt/sources.list")
-						fout = open(outfile, "w+")
-						for line in fin:
-						    for word in delete_list:
-						        line = line.replace(word, "")
-						    fout.write(line)
-						fin.close()
-						fout.close()
-						print ("\033[1;31m\nAll kali linux repositories have been deleted !\n\033[1;m")
+						remove_kali_repo()
+						print ("\033[1;31m\nAll kali linux repositories have been deleted !\033[1;m\n")
 					elif repo == "back":
 						inicio1()
 					elif repo == "gohome":
 						inicio1()
 					elif repo == "4":
-						file = open('/etc/apt/sources.list', 'r')
-
-						print (file.read())
-
+						for path in ("/etc/apt/sources.list", KALI_LIST):
+							if os.path.exists(path):
+								print ("# " + path)
+								with open(path) as f:
+									print (f.read())
 					else:
 						print ("\033[1;31mSorry, that was an invalid command!\033[1;m") 					
 						
@@ -93,13 +112,13 @@ Like the classic GNOME menu, it includes Wine games and applications if you have
 For more information , please visit : http://www.florian-diesch.de/software/classicmenu-indicator/
 
 ''')
-					repo = raw_input("\033[1;32mDo you want to install classicmenu indicator ? [y/n]> \033[1;m")
+					repo = input("\033[1;32mDo you want to install classicmenu indicator ? [y/n]> \033[1;m")
 					if repo == "y":
 						cmd1 = os.system("add-apt-repository ppa:diesch/testing && apt-get update")
 						cmd = os.system("sudo apt-get install classicmenu-indicator")
 
 				elif opcion0 == "4"	:
-					repo = raw_input("\033[1;32mDo you want to install Kali menu ? [y/n]> \033[1;m")
+					repo = input("\033[1;32mDo you want to install Kali menu ? [y/n]> \033[1;m")
 					if repo == "y":
 						cmd1 = os.system("apt-get install kali-menu")
 				elif opcion0 == "5":
@@ -132,7 +151,7 @@ For more information , please visit : http://www.florian-diesch.de/software/clas
 			 ''')
 						print ("\033[1;32mSelect a category or press (0) to install all Kali linux tools .\n\033[1;m")
 
-						opcion1 = raw_input("\033[1;36mkat > \033[1;m")
+						opcion1 = input("\033[1;36mkat > \033[1;m")
 						if opcion1 == "back":
 							inicio1()
 						elif opcion1 == "gohome":
@@ -177,7 +196,7 @@ For more information , please visit : http://www.florian-diesch.de/software/clas
 				 
 						''')
 							print ("\033[1;32mInsert the number of the tool to install it .\n\033[1;m")
-							opcion2 = raw_input("\033[1;36mkat > \033[1;m")
+							opcion2 = input("\033[1;36mkat > \033[1;m")
 							if opcion2 == "1":
 								cmd = os.system("apt-get install acccheck")
 
@@ -332,7 +351,7 @@ For more information , please visit : http://www.florian-diesch.de/software/clas
 				 
 						''')
 							print ("\033[1;32mInsert the number of the tool to install it .\n\033[1;m")
-							opcion2 = raw_input("\033[1;36mkat > \033[1;m")
+							opcion2 = input("\033[1;36mkat > \033[1;m")
 							if opcion2 == "1":
 								cmd = os.system("apt-get install bbqsql")
 
@@ -438,7 +457,7 @@ For more information , please visit : http://www.florian-diesch.de/software/clas
 				 
 						''')
 							print ("\033[1;32mInsert the number of the tool to install it .\n\033[1;m")
-							opcion2 = raw_input("\033[1;36mkat > \033[1;m")
+							opcion2 = input("\033[1;36mkat > \033[1;m")
 							if opcion2 == "1":
 								cmd = os.system("apt-get install aircrack-ng")
 
@@ -543,7 +562,7 @@ For more information , please visit : http://www.florian-diesch.de/software/clas
 							print ("\033[1;32mInsert the number of the tool to install it .\n\033[1;m")
 
 							
-							opcion2 = raw_input("\033[1;36mkat > \033[1;m")
+							opcion2 = input("\033[1;36mkat > \033[1;m")
 							if opcion2 == "1":
 								cmd = os.system("apt-get install apache-users")
 
@@ -661,7 +680,7 @@ For more information , please visit : http://www.florian-diesch.de/software/clas
 				 
 						''')
 							print ("\033[1;32mInsert the number of the tool to install it .\n\033[1;m")
-							opcion2 = raw_input("\033[1;36mkat > \033[1;m")
+							opcion2 = input("\033[1;36mkat > \033[1;m")
 							if opcion2 == "1":
 								cmd = os.system("apt-get install burpsuite")
 
@@ -764,7 +783,7 @@ For more information , please visit : http://www.florian-diesch.de/software/clas
 				 
 						''')
 							print ("\033[1;32mInsert the number of the tool to install it .\n\033[1;m")
-							opcion2 = raw_input("\033[1;36mkat > \033[1;m")
+							opcion2 = input("\033[1;36mkat > \033[1;m")
 							if opcion2 == "1":
 								cmd = os.system("apt-get install cryptcat")
 
@@ -825,7 +844,7 @@ For more information , please visit : http://www.florian-diesch.de/software/clas
 				 
 						''')
 							print ("\033[1;32mInsert the number of the tool to install it .\n\033[1;m")
-							opcion2 = raw_input("\033[1;36mkat > \033[1;m")
+							opcion2 = input("\033[1;36mkat > \033[1;m")
 							if opcion2 == "1":
 								cmd = os.system("apt-get install casefile")
 
@@ -881,7 +900,7 @@ For more information , please visit : http://www.florian-diesch.de/software/clas
 				 
 						''')
 							print ("\033[1;32mInsert the number of the tool to install it .\n\033[1;m")
-							opcion2 = raw_input("\033[1;36mkat > \033[1;m")
+							opcion2 = input("\033[1;36mkat > \033[1;m")
 							if opcion2 == "1":
 								cmd = os.system("apt-get install armitage")
 
@@ -949,7 +968,7 @@ For more information , please visit : http://www.florian-diesch.de/software/clas
 				 
 						''')
 							print ("\033[1;32mInsert the number of the tool to install it .\n\033[1;m")
-							opcion2 = raw_input("\033[1;36mkat > \033[1;m")
+							opcion2 = input("\033[1;36mkat > \033[1;m")
 							if opcion2 == "1":
 								cmd = os.system("apt-get install binwalk")
 
@@ -1029,7 +1048,7 @@ For more information , please visit : http://www.florian-diesch.de/software/clas
 				 
 						''')
 							print ("\033[1;32mInsert the number of the tool to install it .\n\033[1;m")
-							opcion2 = raw_input("\033[1;36mkat > \033[1;m")
+							opcion2 = input("\033[1;36mkat > \033[1;m")
 							if opcion2 == "1":
 								cmd = os.system("apt-get install dhcpig")
 
@@ -1095,7 +1114,7 @@ For more information , please visit : http://www.florian-diesch.de/software/clas
 				 
 						''')
 							print ("\033[1;32mInsert the number of the tool to install it .\n\033[1;m")
-							opcion2 = raw_input("\033[1;36mkat > \033[1;m")
+							opcion2 = input("\033[1;36mkat > \033[1;m")
 							if opcion2 == "1":
 								cmd = os.system("apt-get install acccheck")
 
@@ -1198,7 +1217,7 @@ For more information , please visit : http://www.florian-diesch.de/software/clas
 				 
 						''')
 							print ("\033[1;32mInsert the number of the tool to install it .\n\033[1;m")
-							opcion2 = raw_input("\033[1;36mkat > \033[1;m")
+							opcion2 = input("\033[1;36mkat > \033[1;m")
 							if opcion2 == "1":
 								cmd = os.system("apt-get install apktool")
 
@@ -1246,7 +1265,7 @@ For more information , please visit : http://www.florian-diesch.de/software/clas
 				 
 						''')
 							print ("\033[1;32mInsert the number of the tool to install it .\n\033[1;m")
-							opcion2 = raw_input("\033[1;36mkat > \033[1;m")
+							opcion2 = input("\033[1;36mkat > \033[1;m")
 							if opcion2 == "1":
 								cmd = os.system("apt-get install android-sdk")
 
@@ -1278,7 +1297,7 @@ For more information , please visit : http://www.florian-diesch.de/software/clas
 2) Squid3
 				''')
 							print ("\033[1;32mInsert the number of the tool to install it .\n\033[1;m")
-							opcion2 = raw_input("\033[1;36mkat > \033[1;m")
+							opcion2 = input("\033[1;36mkat > \033[1;m")
 							if opcion2 == "1":
 								cmd = os.system("git clone https://github.com/LionSec/wifresti.git && cp wifresti/wifresti.py /usr/bin/wifresti && chmod +x /usr/bin/wifresti && wifresti")
 								print (" ")
