@@ -49,11 +49,6 @@ Please visit https://github.com/IamPhasm/katoolin/issues (v3.0) or the original 
 - Original project: LionSec (https://github.com/LionSec/katoolin)
 - v3.0 remake: IamPhasm
 
-# Donations
-- Paypal : https://www.paypal.me/lionsec
-- skrill : informatica98es@gmail.com
-
-
 # Original author's contact
 - Website : https://neodrix.com
 - Youtube : https://youtube.com/inf98es

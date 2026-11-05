@@ -156,7 +156,7 @@ def add_key():
 		f.write("katoolin\n")
 		f.close()
 		print(green + "\n[+] Add keyserver\n" + reset)
-		os.system('apt-get update -o Dir::Etc::sourcelist="sources.list.d/katoolin.list" -o Dir::Etc::sourceparts="-" -o apt::Get::List-Cleanup="0"')
+		os.system('apt update -o Dir::Etc::sourcelist="sources.list.d/katoolin.list" -o Dir::Etc::sourceparts="-" -o apt::Get::List-Cleanup="0"')
 		print(green + "\n[+] Update\n" + reset)
 
 def banner():
